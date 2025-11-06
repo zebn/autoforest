@@ -1,0 +1,61 @@
+<!doctype html>
+<html>
+
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>TFM - Detección de Anomalías (Prototipo)</title>
+    <style>
+        body {
+            font-family: Arial, Helvetica, sans-serif;
+            margin: 16px
+        }
+
+        .controls {
+            margin-bottom: 12px
+        }
+
+        table {
+            border-collapse: collapse;
+            width: 100%;
+        }
+
+        th,
+        td {
+            border: 1px solid #ddd;
+            padding: 6px;
+        }
+
+        tr.anomaly {
+            background: rgba(255, 0, 0, 0.12);
+        }
+
+        #result-rows {
+            max-height: 400px;
+            overflow: auto;
+            display: block
+        }
+    </style>
+</head>
+
+<body>
+    <h2>Prototipo: Detección de Anomalías</h2>
+
+    <div class="controls">
+        <label>Subir CSV: <input id="file" type="file" accept=".csv" /></label>
+        <label>Contamination: <input id="contamination" type="number" step="0.01" min="0" max="0.5"
+                value="0.05" /></label>
+        <label>Nº árboles: <input id="nTrees" type="number" value="100" /></label>
+        <button id="run">Ejecutar</button>
+    </div>
+
+    <div id="status"></div>
+
+    <h3>Resultados</h3>
+    <div id="result-rows"></div>
+
+    <script src="renderer.js"></script>
+</body>
+
+</html>

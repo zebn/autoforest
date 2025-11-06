@@ -1,0 +1,66 @@
+{
+    "APP": {
+        "TITLE": "AutoForest",
+        "SUBTITLE": "Auto-ajuste de Isolation Forest"
+    },
+    "MENU": {
+        "ABOUT": "Acerca de",
+        "DOCS": "Documentación",
+        "LANGUAGE": "Idioma"
+    },
+    "CONFIG": {
+        "TITLE": "Configuración del Dataset",
+        "SELECT_CSV": "Seleccionar CSV",
+        "CONTAMINATION": "Contamination (tasa de anomalías esperada)",
+        "CONTAMINATION_HINT": "Valor típico: 0.05 (5%)",
+        "N_TREES": "Número de árboles",
+        "N_TREES_HINT": "Más árboles = mayor precisión",
+        "RUN": "Ejecutar Detección",
+        "CLEAR": "Limpiar"
+    },
+    "RESULTS": {
+        "TITLE": "Resultados del Análisis",
+        "TABLE_TAB": "Tabla de Datos",
+        "STATS_TAB": "Estadísticas",
+        "CHART_TAB": "Gráfico",
+        "SHOWING": "Mostrando",
+        "OF": "de",
+        "RECORDS": "registros",
+        "SHOW_ALL": "Mostrar Todos",
+        "ONLY_ANOMALIES": "Solo Anomalías",
+        "ROWS_PER_PAGE": "Registros por página",
+        "SCORE": "Anomaly Score",
+        "STATUS": "Estado",
+        "ANOMALY": "Anomalía",
+        "NORMAL": "Normal"
+    },
+    "STATS": {
+        "TITLE": "Resumen de Detección",
+        "TOTAL_RECORDS": "Total de registros",
+        "ANOMALIES_DETECTED": "Anomalías detectadas",
+        "NORMAL_RECORDS": "Registros normales",
+        "ANOMALY_RATE": "Tasa de anomalías"
+    },
+    "STATUS": {
+        "PARSING": "Parseando archivo...",
+        "PROCESSING": "Procesando {{count}} líneas...",
+        "LOADED": "✓ Archivo cargado: {{records}} registros, {{columns}} columnas",
+        "RECODING": "Recodificando {{count}} registros...",
+        "RECODE_COMPLETE": "Recodificación completada ({{time}}s). Ejecutando Isolation Forest...",
+        "ANALYSIS_COMPLETE": "✓ Análisis completado en {{time}}s: {{anomalies}} anomalías detectadas ({{percentage}}%)",
+        "LOAD_CSV_FIRST": "Por favor, carga un CSV primero",
+        "ERROR_LOADING": "Error al cargar archivo: {{error}}",
+        "ERROR": "Error: {{error}}"
+    },
+    "ABOUT": {
+        "TITLE": "AutoForest v0.2.0",
+        "DESCRIPTION": "Sistema de detección de anomalías con auto-ajuste de hiperparámetros",
+        "BASED_ON": "Basado en: \"Multivariate Automatic Tuning of Isolation Forest for Anomaly Detection in Critical Infrastructures\"",
+        "AUTHORS": "Autores: Saavedra et al., Universidad de Alicante",
+        "PROJECT": "Desarrollado como parte del TFM en Ciberseguridad",
+        "COPYRIGHT": "© 2025"
+    },
+    "DOCS": {
+        "MESSAGE": "Documentación: Ver archivos GUIA-RAPIDA.md y README.md en la carpeta del proyecto"
+    }
+}

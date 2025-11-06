@@ -1,0 +1,66 @@
+{
+    "APP": {
+        "TITLE": "AutoForest",
+        "SUBTITLE": "Auto-tuning Isolation Forest"
+    },
+    "MENU": {
+        "ABOUT": "About",
+        "DOCS": "Documentation",
+        "LANGUAGE": "Language"
+    },
+    "CONFIG": {
+        "TITLE": "Dataset Configuration",
+        "SELECT_CSV": "Select CSV",
+        "CONTAMINATION": "Contamination (expected anomaly rate)",
+        "CONTAMINATION_HINT": "Typical value: 0.05 (5%)",
+        "N_TREES": "Number of trees",
+        "N_TREES_HINT": "More trees = higher accuracy",
+        "RUN": "Run Detection",
+        "CLEAR": "Clear"
+    },
+    "RESULTS": {
+        "TITLE": "Analysis Results",
+        "TABLE_TAB": "Data Table",
+        "STATS_TAB": "Statistics",
+        "CHART_TAB": "Chart",
+        "SHOWING": "Showing",
+        "OF": "of",
+        "RECORDS": "records",
+        "SHOW_ALL": "Show All",
+        "ONLY_ANOMALIES": "Only Anomalies",
+        "ROWS_PER_PAGE": "Rows per page",
+        "SCORE": "Anomaly Score",
+        "STATUS": "Status",
+        "ANOMALY": "Anomaly",
+        "NORMAL": "Normal"
+    },
+    "STATS": {
+        "TITLE": "Detection Summary",
+        "TOTAL_RECORDS": "Total records",
+        "ANOMALIES_DETECTED": "Anomalies detected",
+        "NORMAL_RECORDS": "Normal records",
+        "ANOMALY_RATE": "Anomaly rate"
+    },
+    "STATUS": {
+        "PARSING": "Parsing file...",
+        "PROCESSING": "Processing {{count}} lines...",
+        "LOADED": "✓ File loaded: {{records}} records, {{columns}} columns",
+        "RECODING": "Recoding {{count}} records...",
+        "RECODE_COMPLETE": "Recoding completed ({{time}}s). Running Isolation Forest...",
+        "ANALYSIS_COMPLETE": "✓ Analysis completed in {{time}}s: {{anomalies}} anomalies detected ({{percentage}}%)",
+        "LOAD_CSV_FIRST": "Please load a CSV file first",
+        "ERROR_LOADING": "Error loading file: {{error}}",
+        "ERROR": "Error: {{error}}"
+    },
+    "ABOUT": {
+        "TITLE": "AutoForest v0.2.0",
+        "DESCRIPTION": "Anomaly detection system with automatic hyperparameter tuning",
+        "BASED_ON": "Based on: \"Multivariate Automatic Tuning of Isolation Forest for Anomaly Detection in Critical Infrastructures\"",
+        "AUTHORS": "Authors: Saavedra et al., University of Alicante",
+        "PROJECT": "Developed as part of the Master's Thesis in Cybersecurity",
+        "COPYRIGHT": "© 2025"
+    },
+    "DOCS": {
+        "MESSAGE": "Documentation: See GUIA-RAPIDA.md and README.md files in the project folder"
+    }
+}

@@ -1,0 +1,7 @@
+# This file is used by the build system to adjust CSS and JS output to support the specified browsers below.
+# For additional information regarding the format and rule options, please see:
+# https://github.com/browserslist/browserslist#queries
+
+# For Electron, we target the Chrome version used by Electron
+last 1 Chrome version
+not IE 11

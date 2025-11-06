@@ -1,0 +1,58 @@
+{
+    "name": "autoforest",
+    "version": "0.2.0",
+    "description": "AutoForest - Auto-tuning Isolation Forest for anomaly detection in critical infrastructures",
+    "main": "main.js",
+    "scripts": {
+        "start": "cd renderer && npm run build && cd .. && electron .",
+        "electron": "electron .",
+        "build": "cd renderer && npm run build && cd ..",
+        "dist": "npm run build && electron-builder",
+        "dist:win": "npm run build && electron-builder --win",
+        "postinstall": "node -e \"console.log('Postinstall: ready')\""
+    },
+    "keywords": [
+        "anomaly-detection",
+        "isolation-forest",
+        "auto-tuning",
+        "cybersecurity",
+        "critical-infrastructure",
+        "electron",
+        "tfm"
+    ],
+    "author": "Pavel",
+    "license": "MIT",
+    "devDependencies": {
+        "electron": "^24.0.0",
+        "electron-builder": "^26.0.12"
+    },
+    "build": {
+        "appId": "com.tfm.autoforest",
+        "productName": "AutoForest",
+        "directories": {
+            "output": "release"
+        },
+        "files": [
+            "main.js",
+            "preload.js",
+            "renderer/dist/**/*",
+            "src/**/*"
+        ],
+        "win": {
+            "target": [
+                "nsis"
+            ]
+        },
+        "nsis": {
+            "oneClick": false,
+            "allowToChangeInstallationDirectory": true,
+            "createDesktopShortcut": true,
+            "createStartMenuShortcut": true
+        }
+    },
+    "dependencies": {
+        "electron-serve": "^3.0.0",
+        "express": "^5.1.0",
+        "isolation-forest": "^0.0.9"
+    }
+}
