@@ -1,6 +1,24 @@
 {
     "compileOnSave": false,
     "compilerOptions": {
+        "baseUrl": "./src",
+        "paths": {
+            "@core": [
+                "app/core/index.ts"
+            ],
+            "@core/*": [
+                "app/core/*"
+            ],
+            "@features/*": [
+                "app/features/*"
+            ],
+            "@shared/*": [
+                "app/shared/*"
+            ],
+            "@layout/*": [
+                "app/layout/*"
+            ]
+        },
         "outDir": "./out-tsc",
         "sourceMap": true,
         "declaration": false,

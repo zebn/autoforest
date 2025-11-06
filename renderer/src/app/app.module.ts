@@ -25,13 +25,34 @@ import { ScrollingModule } from '@angular/cdk/scrolling';
 
 import { AppComponent } from './app.component';
 
+// Feature Components
+import { DatasetConfigComponent } from './features/dataset/components/dataset-config.component';
+import { DataTableComponent } from './features/analysis/components/data-table.component';
+import { StatisticsPanelComponent } from './features/analysis/components/statistics-panel.component';
+
+// Layout Components
+import { ToolbarComponent } from './layout/components/toolbar.component';
+
+// Shared Components
+import { StatusMessageComponent } from './shared/components/status-message.component';
+
 // TranslateLoader factory
 export function HttpLoaderFactory(http: HttpClient) {
     return new TranslateHttpLoader(http, './assets/i18n/', '.json');
 }
 
 @NgModule({
-    declarations: [AppComponent],
+    declarations: [
+        AppComponent,
+        // Feature Components
+        DatasetConfigComponent,
+        DataTableComponent,
+        StatisticsPanelComponent,
+        // Layout Components
+        ToolbarComponent,
+        // Shared Components
+        StatusMessageComponent
+    ],
     imports: [
         BrowserModule,
         BrowserAnimationsModule,

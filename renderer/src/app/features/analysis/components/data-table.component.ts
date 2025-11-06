@@ -1,9 +1,9 @@
 import { Component, Input, Output, EventEmitter, OnInit } from '@angular/core';
-import { IDatasetRow } from '../../../core';
+import { IDatasetRow } from '@core';
 
 @Component({
-    selector: 'app-data-table',
-    template: `
+  selector: 'app-data-table',
+  template: `
     <div style="margin-top: 20px;">
       <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; flex-wrap: wrap; gap: 10px;">
         <div style="display: flex; align-items: center; gap: 15px;">
@@ -82,7 +82,7 @@ import { IDatasetRow } from '../../../core';
       </mat-paginator>
     </div>
   `,
-    styles: [`
+  styles: [`
     .result-table {
       width: 100%;
       background: white;
@@ -98,67 +98,67 @@ import { IDatasetRow } from '../../../core';
   `]
 })
 export class DataTableComponent implements OnInit {
-    @Input() data: IDatasetRow[] = [];
-    @Input() columns: string[] = [];
-    @Input() hasScores: boolean = false;
-    @Input() showOnlyAnomalies: boolean = false;
-    @Input() pageSize: number = 50;
-    @Input() pageIndex: number = 0;
-    @Input() pageSizeOptions: number[] = [10, 25, 50, 100, 500];
+  @Input() data: IDatasetRow[] = [];
+  @Input() columns: string[] = [];
+  @Input() hasScores: boolean = false;
+  @Input() showOnlyAnomalies: boolean = false;
+  @Input() pageSize: number = 50;
+  @Input() pageIndex: number = 0;
+  @Input() pageSizeOptions: number[] = [10, 25, 50, 100, 500];
 
-    @Output() filterToggled = new EventEmitter<void>();
-    @Output() pageChanged = new EventEmitter<{ pageIndex: number; pageSize: number }>();
+  @Output() filterToggled = new EventEmitter<void>();
+  @Output() pageChanged = new EventEmitter<{ pageIndex: number; pageSize: number }>();
 
-    displayedData: IDatasetRow[] = [];
-    displayedColumns: string[] = [];
-    totalCount: number = 0;
+  displayedData: IDatasetRow[] = [];
+  displayedColumns: string[] = [];
+  totalCount: number = 0;
 
-    ngOnInit(): void {
-        this.updateDisplayedColumns();
-        this.updateDisplayedData();
+  ngOnInit(): void {
+    this.updateDisplayedColumns();
+    this.updateDisplayedData();
+  }
+
+  ngOnChanges(): void {
+    this.updateDisplayedColumns();
+    this.updateDisplayedData();
+  }
+
+  private updateDisplayedColumns(): void {
+    this.displayedColumns = this.hasScores
+      ? [...this.columns, 'score', 'anomaly']
+      : [...this.columns];
+  }
+
+  private updateDisplayedData(): void {
+    let filtered = this.data;
+
+    if (this.showOnlyAnomalies && this.hasScores) {
+      filtered = filtered.filter(row => row.isAnomaly);
     }
 
-    ngOnChanges(): void {
-        this.updateDisplayedColumns();
-        this.updateDisplayedData();
-    }
+    this.totalCount = filtered.length;
 
-    private updateDisplayedColumns(): void {
-        this.displayedColumns = this.hasScores
-            ? [...this.columns, 'score', 'anomaly']
-            : [...this.columns];
-    }
+    const startIndex = this.pageIndex * this.pageSize;
+    const endIndex = startIndex + this.pageSize;
+    this.displayedData = filtered.slice(startIndex, endIndex);
+  }
 
-    private updateDisplayedData(): void {
-        let filtered = this.data;
+  toggleFilter(): void {
+    this.filterToggled.emit();
+  }
 
-        if (this.showOnlyAnomalies && this.hasScores) {
-            filtered = filtered.filter(row => row.isAnomaly);
-        }
+  onPageChange(event: any): void {
+    this.pageChanged.emit({
+      pageIndex: event.pageIndex,
+      pageSize: event.pageSize
+    });
+  }
 
-        this.totalCount = filtered.length;
-
-        const startIndex = this.pageIndex * this.pageSize;
-        const endIndex = startIndex + this.pageSize;
-        this.displayedData = filtered.slice(startIndex, endIndex);
-    }
-
-    toggleFilter(): void {
-        this.filterToggled.emit();
-    }
-
-    onPageChange(event: any): void {
-        this.pageChanged.emit({
-            pageIndex: event.pageIndex,
-            pageSize: event.pageSize
-        });
-    }
-
-    onPageSizeChange(event: Event): void {
-        const select = event.target as HTMLSelectElement;
-        this.pageChanged.emit({
-            pageIndex: 0,
-            pageSize: parseInt(select.value, 10)
-        });
-    }
+  onPageSizeChange(event: Event): void {
+    const select = event.target as HTMLSelectElement;
+    this.pageChanged.emit({
+      pageIndex: 0,
+      pageSize: parseInt(select.value, 10)
+    });
+  }
 }

@@ -1,9 +1,9 @@
 import { Component, EventEmitter, Input, Output } from '@angular/core';
-import { IIsolationForestParams } from '../../../core';
+import { IIsolationForestParams } from '@core';
 
 @Component({
-    selector: 'app-dataset-config',
-    template: `
+  selector: 'app-dataset-config',
+  template: `
     <mat-card>
       <mat-card-header>
         <mat-card-title>
@@ -85,39 +85,39 @@ import { IIsolationForestParams } from '../../../core';
       </mat-card-content>
     </mat-card>
   `,
-    styles: []
+  styles: []
 })
 export class DatasetConfigComponent {
-    @Input() fileName: string = '';
-    @Input() canRun: boolean = false;
-    @Input() canClear: boolean = false;
-    @Input() isLoading: boolean = false;
-    @Input() params: IIsolationForestParams = {
-        contamination: 0.05,
-        nTrees: 100
-    };
+  @Input() fileName: string = '';
+  @Input() canRun: boolean = false;
+  @Input() canClear: boolean = false;
+  @Input() isLoading: boolean = false;
+  @Input() params: IIsolationForestParams = {
+    contamination: 0.05,
+    nTrees: 100
+  };
 
-    @Output() fileSelected = new EventEmitter<File>();
-    @Output() runAnalysis = new EventEmitter<void>();
-    @Output() clear = new EventEmitter<void>();
-    @Output() paramsChanged = new EventEmitter<IIsolationForestParams>();
+  @Output() fileSelected = new EventEmitter<File>();
+  @Output() runAnalysis = new EventEmitter<void>();
+  @Output() clear = new EventEmitter<void>();
+  @Output() paramsChanged = new EventEmitter<IIsolationForestParams>();
 
-    onFileSelected(event: Event): void {
-        const input = event.target as HTMLInputElement;
-        if (input.files && input.files.length > 0) {
-            this.fileSelected.emit(input.files[0]);
-        }
+  onFileSelected(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    if (input.files && input.files.length > 0) {
+      this.fileSelected.emit(input.files[0]);
     }
+  }
 
-    onRunAnalysis(): void {
-        this.runAnalysis.emit();
-    }
+  onRunAnalysis(): void {
+    this.runAnalysis.emit();
+  }
 
-    onClear(): void {
-        this.clear.emit();
-    }
+  onClear(): void {
+    this.clear.emit();
+  }
 
-    onParamsChange(): void {
-        this.paramsChanged.emit(this.params);
-    }
+  onParamsChange(): void {
+    this.paramsChanged.emit(this.params);
+  }
 }

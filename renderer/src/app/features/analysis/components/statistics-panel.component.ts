@@ -1,9 +1,9 @@
 import { Component, Input } from '@angular/core';
-import { IDatasetStats } from '../../../core';
+import { IDatasetStats } from '@core';
 
 @Component({
-    selector: 'app-statistics-panel',
-    template: `
+  selector: 'app-statistics-panel',
+  template: `
     <div style="padding: 20px;">
       <h3>{{ 'STATS.TITLE' | translate }}</h3>
       <div class="stats-grid">
@@ -37,7 +37,7 @@ import { IDatasetStats } from '../../../core';
       </div>
     </div>
   `,
-    styles: [`
+  styles: [`
     .stats-grid {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
@@ -61,10 +61,10 @@ import { IDatasetStats } from '../../../core';
   `]
 })
 export class StatisticsPanelComponent {
-    @Input() stats: IDatasetStats = {
-        totalRecords: 0,
-        totalAnomalies: 0,
-        normalRecords: 0,
-        anomalyRate: 0
-    };
+  @Input() stats: IDatasetStats = {
+    totalRecords: 0,
+    totalAnomalies: 0,
+    normalRecords: 0,
+    anomalyRate: 0
+  };
 }
