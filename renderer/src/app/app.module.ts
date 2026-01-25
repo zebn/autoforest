@@ -16,11 +16,14 @@ import { MatInputModule } from '@angular/material/input';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatTableModule } from '@angular/material/table';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { MatIconModule } from '@angular/material/icon';
 import { MatTabsModule } from '@angular/material/tabs';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatPaginatorModule } from '@angular/material/paginator';
 import { MatMenuModule } from '@angular/material/menu';
+import { MatSelectModule } from '@angular/material/select';
+import { MatExpansionModule } from '@angular/material/expansion';
 import { ScrollingModule } from '@angular/cdk/scrolling';
 
 import { AppComponent } from './app.component';
@@ -29,6 +32,7 @@ import { AppComponent } from './app.component';
 import { DatasetConfigComponent } from './features/dataset/components/dataset-config.component';
 import { DataTableComponent } from './features/analysis/components/data-table.component';
 import { StatisticsPanelComponent } from './features/analysis/components/statistics-panel.component';
+import { AutoTunerPanelComponent } from './features/tuning/components/auto-tuner-panel.component';
 
 // Layout Components
 import { ToolbarComponent } from './layout/components/toolbar.component';
@@ -48,6 +52,7 @@ export function HttpLoaderFactory(http: HttpClient) {
         DatasetConfigComponent,
         DataTableComponent,
         StatisticsPanelComponent,
+        AutoTunerPanelComponent,
         // Layout Components
         ToolbarComponent,
         // Shared Components
@@ -74,11 +79,14 @@ export function HttpLoaderFactory(http: HttpClient) {
         MatFormFieldModule,
         MatTableModule,
         MatProgressSpinnerModule,
+        MatProgressBarModule,
         MatIconModule,
         MatTabsModule,
         MatChipsModule,
         MatPaginatorModule,
         MatMenuModule,
+        MatSelectModule,
+        MatExpansionModule,
         ScrollingModule
     ],
     providers: [],

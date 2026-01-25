@@ -16,3 +16,4 @@ export * from './services/dataset.service';
 export * from './services/analysis.service';
 export * from './services/pagination.service';
 export * from './services/electron.service';
+export * from './services/auto-tuner.service';

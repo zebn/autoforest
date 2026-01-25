@@ -1,6 +1,7 @@
-import { Component, OnInit, ViewChild } from '@angular/core';
+import { Component, OnInit, ViewChild, NgZone } from '@angular/core';
 import { MatPaginator, PageEvent } from '@angular/material/paginator';
 import { TranslateService } from '@ngx-translate/core';
+import { AutoTunerService } from '@core';
 
 @Component({
   selector: 'app-root',
@@ -93,16 +94,25 @@ import { TranslateService } from '@ngx-translate/core';
             </mat-form-field>
           </div>
 
-          <div style="margin-top: 20px;">
+          <div style="margin-top: 20px; display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
             <button 
               mat-raised-button 
               color="accent" 
               (click)="run()"
               [disabled]="!rows.length || isLoading"
-              style="margin-right: 10px;"
             >
               <mat-icon>play_arrow</mat-icon>
               {{ 'CONFIG.RUN' | translate }}
+            </button>
+            
+            <button 
+              mat-raised-button 
+              color="primary"
+              (click)="autoTune()"
+              [disabled]="!rows.length || isLoading || isAutoTuning"
+            >
+              <mat-icon>auto_fix_high</mat-icon>
+              {{ 'AUTO_TUNE.RUN' | translate }}
             </button>
             
             <button 
@@ -113,6 +123,63 @@ import { TranslateService } from '@ngx-translate/core';
               <mat-icon>clear</mat-icon>
               {{ 'CONFIG.CLEAR' | translate }}
             </button>
+            
+            <!-- Auto-tune method selector -->
+            <mat-form-field appearance="outline" style="width: 180px; margin-left: auto;" *ngIf="!isAutoTuning">
+              <mat-label>{{ 'AUTO_TUNE.METHOD' | translate }}</mat-label>
+              <mat-select [(value)]="autoTuneMethod">
+                <mat-option value="quick">{{ 'AUTO_TUNE.METHODS.QUICK' | translate }}</mat-option>
+                <mat-option value="balanced">{{ 'AUTO_TUNE.METHODS.BALANCED' | translate }}</mat-option>
+                <mat-option value="thorough">{{ 'AUTO_TUNE.METHODS.THOROUGH' | translate }}</mat-option>
+              </mat-select>
+            </mat-form-field>
+          </div>
+          
+          <!-- Auto-tune progress -->
+          <div style="margin-top: 15px;" *ngIf="isAutoTuning">
+            <mat-progress-bar mode="indeterminate" *ngIf="!autoTuneProgress?.total"></mat-progress-bar>
+            <mat-progress-bar 
+              mode="determinate" 
+              [value]="getAutoTuneProgressPercent()"
+              *ngIf="autoTuneProgress?.total">
+            </mat-progress-bar>
+            <p style="color: #666; margin-top: 8px; font-size: 14px;">
+              {{ autoTunerService.getStatusMessage() }}
+            </p>
+          </div>
+          
+          <!-- Auto-tune results -->
+          <div *ngIf="autoTuneResult" style="margin-top: 15px; padding: 15px; background: #e8f5e9; border-radius: 8px;">
+            <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px;">
+              <mat-icon style="color: #2e7d32;">check_circle</mat-icon>
+              <strong>{{ 'AUTO_TUNE.OPTIMAL_PARAMS' | translate }}</strong>
+            </div>
+            <div style="display: flex; gap: 20px; flex-wrap: wrap;">
+              <div>
+                <span style="color: #666; font-size: 12px;">{{ 'CONFIG.CONTAMINATION' | translate }}</span>
+                <div style="font-size: 20px; font-weight: 600; color: #2e7d32;">
+                  {{ autoTuneResult.optimalParams.contamination * 100 | number:'1.1-1' }}%
+                </div>
+              </div>
+              <div>
+                <span style="color: #666; font-size: 12px;">{{ 'CONFIG.N_TREES' | translate }}</span>
+                <div style="font-size: 20px; font-weight: 600; color: #2e7d32;">
+                  {{ autoTuneResult.optimalParams.nTrees }}
+                </div>
+              </div>
+              <div>
+                <span style="color: #666; font-size: 12px;">{{ 'AUTO_TUNE.QUALITY_SCORE' | translate }}</span>
+                <div style="font-size: 20px; font-weight: 600; color: #1976d2;">
+                  {{ autoTuneResult.metrics.qualityScore | number:'1.3-3' }}
+                </div>
+              </div>
+              <div style="margin-left: auto;">
+                <button mat-raised-button color="accent" (click)="applyAutoTuneParams()">
+                  <mat-icon>check</mat-icon>
+                  {{ 'AUTO_TUNE.APPLY' | translate }}
+                </button>
+              </div>
+            </div>
           </div>
 
           <div style="margin-top: 15px;" *ngIf="status">
@@ -331,6 +398,12 @@ export class AppComponent implements OnInit {
   fileName = '';
   displayedColumns: string[] = [];
 
+  // Auto-tuning
+  isAutoTuning = false;
+  autoTuneMethod: 'quick' | 'balanced' | 'thorough' = 'balanced';
+  autoTuneProgress: any = null;
+  autoTuneResult: any = null;
+
   // Pagination
   pageSize = 50;
   pageIndex = 0;
@@ -339,7 +412,11 @@ export class AppComponent implements OnInit {
   // i18n
   currentLang = 'es';
 
-  constructor(private translate: TranslateService) {
+  constructor(
+    private translate: TranslateService,
+    public autoTunerService: AutoTunerService,
+    private ngZone: NgZone
+  ) {
     // Set default language
     this.translate.setDefaultLang('es');
     this.translate.use('es');
@@ -350,6 +427,15 @@ export class AppComponent implements OnInit {
     if ((window as any).api && (window as any).api.onFileLoaded) {
       (window as any).api.onFileLoaded((data: any) => {
         this.loadFileContent(data.content, data.name);
+      });
+    }
+
+    // Listen for auto-tune progress
+    if ((window as any).api && (window as any).api.onAutoTuneProgress) {
+      (window as any).api.onAutoTuneProgress((progress: any) => {
+        this.ngZone.run(() => {
+          this.autoTuneProgress = progress;
+        });
       });
     }
   }
@@ -566,5 +652,71 @@ ${this.translate.instant('ABOUT.COPYRIGHT')}`;
     } else {
       alert(this.translate.instant('DOCS.MESSAGE'));
     }
+  }
+
+  // =====================
+  // Auto-Tuning Methods
+  // =====================
+
+  async autoTune() {
+    if (!this.rows.length) {
+      this.status = this.translate.instant('STATUS.LOAD_CSV_FIRST');
+      this.statusColor = 'warn';
+      return;
+    }
+
+    this.isAutoTuning = true;
+    this.autoTuneResult = null;
+    this.autoTuneProgress = null;
+    this.status = this.translate.instant('AUTO_TUNE.RUN') + '...';
+    this.statusColor = 'primary';
+
+    try {
+      // Recode data first
+      const data = this.recode(this.rows);
+
+      // Call Electron API
+      if ((window as any).api && (window as any).api.autoTune) {
+        const response = await (window as any).api.autoTune({
+          data,
+          options: { method: this.autoTuneMethod }
+        });
+
+        if (response.success && response.result) {
+          this.autoTuneResult = response.result;
+          this.status = this.translate.instant('AUTO_TUNE.OPTIMAL_PARAMS') + ': ' +
+            `contamination=${(response.result.optimalParams.contamination * 100).toFixed(1)}%, ` +
+            `nTrees=${response.result.optimalParams.nTrees}`;
+          this.statusColor = 'accent';
+        } else {
+          this.status = this.translate.instant('STATUS.ERROR', { error: response.error || 'Unknown error' });
+          this.statusColor = 'warn';
+        }
+      } else {
+        this.status = 'Auto-tuning only available in Electron';
+        this.statusColor = 'warn';
+      }
+    } catch (e: any) {
+      this.status = this.translate.instant('STATUS.ERROR', { error: e.message });
+      this.statusColor = 'warn';
+    } finally {
+      this.isAutoTuning = false;
+      this.autoTuneProgress = null;
+    }
+  }
+
+  applyAutoTuneParams() {
+    if (this.autoTuneResult) {
+      this.contamination = this.autoTuneResult.optimalParams.contamination;
+      this.nTrees = this.autoTuneResult.optimalParams.nTrees;
+      this.autoTuneResult = null;
+      this.status = this.translate.instant('AUTO_TUNE.APPLY') + ' ✓';
+      this.statusColor = 'accent';
+    }
+  }
+
+  getAutoTuneProgressPercent(): number {
+    if (!this.autoTuneProgress || !this.autoTuneProgress.total) return 0;
+    return Math.round((this.autoTuneProgress.current / this.autoTuneProgress.total) * 100);
   }
 }

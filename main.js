@@ -2,6 +2,7 @@ const { app, BrowserWindow, ipcMain, Menu, dialog } = require('electron');
 const path = require('path');
 const fs = require('fs');
 const isolation = require('./src/isolationEngine');
+const autoTuner = require('./src/autoTuner');
 
 let mainWindow;
 
@@ -137,6 +138,22 @@ app.on('window-all-closed', function () {
 ipcMain.handle('run-isolation', async (event, { data, params }) => {
     try {
         const result = await isolation.fitAndScore(data, params);
+        return { success: true, result };
+    } catch (err) {
+        return { success: false, error: err.message };
+    }
+});
+
+// IPC: handle auto-tuning request from renderer
+ipcMain.handle('auto-tune', async (event, { data, options }) => {
+    try {
+        const result = await autoTuner.autoTune(data, {
+            method: options?.method || 'balanced',
+            progressCallback: (progress) => {
+                // Send progress updates to renderer
+                mainWindow.webContents.send('auto-tune-progress', progress);
+            }
+        });
         return { success: true, result };
     } catch (err) {
         return { success: false, error: err.message };

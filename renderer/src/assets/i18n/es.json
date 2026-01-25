@@ -62,5 +62,32 @@
     },
     "DOCS": {
         "MESSAGE": "Documentación: Ver archivos GUIA-RAPIDA.md y README.md en la carpeta del proyecto"
+    },
+    "AUTO_TUNE": {
+        "TITLE": "Auto-ajuste de Parámetros",
+        "SUBTITLE": "Encuentra los parámetros óptimos de Isolation Forest",
+        "METHOD": "Método de Ajuste",
+        "METHODS": {
+            "QUICK": "Rápido (~3 iteraciones)",
+            "BALANCED": "Equilibrado (~15 iteraciones)",
+            "THOROUGH": "Exhaustivo (~45 iteraciones)"
+        },
+        "RUN": "Auto-Ajustar",
+        "APPLY": "Aplicar Parámetros",
+        "RESET": "Reiniciar",
+        "TESTING": "Probando",
+        "OPTIMAL_PARAMS": "Parámetros Óptimos",
+        "METRICS": "Métricas de Calidad",
+        "ESTIMATIONS": "Estimaciones de Contaminación",
+        "SEPARATION_SCORE": "Puntuación de Separación",
+        "SILHOUETTE_SCORE": "Puntuación Silhouette",
+        "QUALITY_SCORE": "Puntuación de Calidad",
+        "EXECUTION_TIME": "Tiempo de Ejecución",
+        "ITERATIONS": "Iteraciones",
+        "IQR_METHOD": "Método IQR",
+        "ZSCORE_METHOD": "Método Z-Score",
+        "MAD_METHOD": "Método MAD",
+        "ELBOW_METHOD": "Método Elbow",
+        "COMBINED": "Combinado"
     }
 }

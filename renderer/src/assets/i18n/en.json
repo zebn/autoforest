@@ -62,5 +62,32 @@
     },
     "DOCS": {
         "MESSAGE": "Documentation: See GUIA-RAPIDA.md and README.md files in the project folder"
+    },
+    "AUTO_TUNE": {
+        "TITLE": "Automatic Parameter Tuning",
+        "SUBTITLE": "Find optimal Isolation Forest parameters",
+        "METHOD": "Tuning Method",
+        "METHODS": {
+            "QUICK": "Quick (~3 iterations)",
+            "BALANCED": "Balanced (~15 iterations)",
+            "THOROUGH": "Thorough (~45 iterations)"
+        },
+        "RUN": "Auto-Tune",
+        "APPLY": "Apply Parameters",
+        "RESET": "Reset",
+        "TESTING": "Testing",
+        "OPTIMAL_PARAMS": "Optimal Parameters",
+        "METRICS": "Quality Metrics",
+        "ESTIMATIONS": "Contamination Estimations",
+        "SEPARATION_SCORE": "Separation Score",
+        "SILHOUETTE_SCORE": "Silhouette Score",
+        "QUALITY_SCORE": "Quality Score",
+        "EXECUTION_TIME": "Execution Time",
+        "ITERATIONS": "Iterations",
+        "IQR_METHOD": "IQR Method",
+        "ZSCORE_METHOD": "Z-Score Method",
+        "MAD_METHOD": "MAD Method",
+        "ELBOW_METHOD": "Elbow Method",
+        "COMBINED": "Combined"
     }
 }
