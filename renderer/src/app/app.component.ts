@@ -497,14 +497,38 @@ export class AppComponent implements OnInit {
     });
   }
 
+  /**
+   * Extract numeric value from string with units (e.g., "572.634 MB" → 572.634)
+   */
+  parseNumericValue(val: string): number | null {
+    if (val === null || val === '') return null;
+    
+    // Try direct parsing first
+    const direct = Number(val);
+    if (!Number.isNaN(direct)) return direct;
+    
+    // Try extracting number from string with units (e.g., "123.45 MB", "99%")
+    const match = val.match(/^[\s"']*(-?\d+(?:\.\d+)?)/);
+    if (match) {
+      const num = Number(match[1]);
+      if (!Number.isNaN(num)) return num;
+    }
+    
+    return null;
+  }
+
   recode(rows: string[][]) {
     const cols = rows[0].length;
     const maps = Array.from({ length: cols }, () => new Map());
     const nextId = Array.from({ length: cols }, () => 1);
     return rows.map(r => r.map((cell, i) => {
       const val = cell === '' ? null : cell;
-      const n = Number(val);
-      if (!Number.isNaN(n) && val !== '') return n;
+      
+      // Try to parse as numeric (including values with units like "572.634 MB")
+      const numericVal = this.parseNumericValue(val as string);
+      if (numericVal !== null) return numericVal;
+      
+      // Categorical encoding
       const m = maps[i];
       if (m.has(val)) return m.get(val);
       const id = nextId[i]++;
