@@ -7,7 +7,7 @@
  * 3. Stability analysis across different parameter combinations
  */
 
-const { fitAndScore } = require('./isolationEngine');
+const { fitAndScore, IsolationForest } = require('./isolationForest');
 
 // ============================================================================
 // Statistical Helper Functions
