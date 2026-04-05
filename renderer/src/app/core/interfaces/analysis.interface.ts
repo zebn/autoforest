@@ -6,6 +6,9 @@ export interface IIsolationForestParams {
     nTrees: number;
     maxSamples?: number;
     maxFeatures?: number;
+    maxDepth?: number;
+    threshold?: number;
+    sampleSize?: number;
 }
 
 /**
