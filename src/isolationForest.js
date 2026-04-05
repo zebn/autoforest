@@ -212,6 +212,7 @@ class IsolationForest {
      *        1.0 = all features, 0.5 = half, 'sqrt' = sqrt(n_features)
      * @param {number|string} [options.contamination='auto'] - Expected anomaly proportion
      *        'auto' = use decision_function scores
+     * @param {number|null} [options.maxDepth=null] - Maximum tree depth (null = ceil(log2(maxSamples)))
      * @param {boolean} [options.bootstrap=false] - Sample with replacement
      * @param {number|null} [options.randomState=null] - Random seed
      */
@@ -220,6 +221,7 @@ class IsolationForest {
         this.maxSamples = options.maxSamples ?? 'auto';
         this.maxFeatures = options.maxFeatures ?? 1.0;
         this.contamination = options.contamination ?? 'auto';
+        this.maxDepthParam = options.maxDepth ?? null;
         this.bootstrap = options.bootstrap ?? false;
         this.randomState = options.randomState ?? null;
 
@@ -268,8 +270,10 @@ class IsolationForest {
         }
         nFeaturesUsed = Math.max(1, nFeaturesUsed);
 
-        // Max depth based on subsample size
-        const maxDepth = Math.ceil(Math.log2(this.nSamplesUsed));
+        // Max depth: user-specified or log2(subsample size)
+        const maxDepth = (this.maxDepthParam != null && this.maxDepthParam > 0)
+            ? this.maxDepthParam
+            : Math.ceil(Math.log2(this.nSamplesUsed));
 
         // Initialize RNG
         const rng = new SeededRandom(this.randomState ?? Date.now());
@@ -431,18 +435,32 @@ function harmonicNumber(n) {
  * @returns {Object} { scores, labels, model, engine }
  */
 async function fitAndScore(data, params = {}) {
+    // Determine sample size
+    let maxSamples = params.maxSamples ?? 'auto';
+    if (params.sampleSize != null && params.sampleSize > 0) {
+        maxSamples = params.sampleSize;
+    }
+
     const model = new IsolationForest({
         nEstimators: params.nTrees ?? params.nEstimators ?? 100,
-        maxSamples: params.maxSamples ?? 'auto',
+        maxSamples,
         maxFeatures: params.maxFeatures ?? 1.0,
         contamination: params.contamination ?? 0.05,
+        maxDepth: params.maxDepth ?? null,
         bootstrap: params.bootstrap ?? false,
         randomState: params.randomState ?? null
     });
 
     model.fit(data);
     const scores = model.decisionFunction(data);
-    const labels = model.predictBinary(data);
+
+    // Use custom threshold if provided, otherwise use model's built-in threshold
+    let labels;
+    if (params.threshold != null && params.threshold > 0) {
+        labels = scores.map(s => s >= params.threshold);
+    } else {
+        labels = model.predictBinary(data);
+    }
 
     return {
         scores,

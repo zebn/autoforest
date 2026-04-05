@@ -1,7 +1,6 @@
 import { Injectable, NgZone } from '@angular/core';
 import { BehaviorSubject, Observable } from 'rxjs';
-import { IAutoTuneConfig, IAutoTuneProgress, IAutoTuneResult } from '../interfaces/electron.interface';
-import { IIsolationForestParams } from '../interfaces/analysis.interface';
+import { IAutoTuneConfig, IAutoTuneProgress, IAutoTuneResult, ITuningStep } from '../interfaces/electron.interface';
 
 /**
  * Interface for Auto-Tuning State
@@ -14,12 +13,9 @@ export interface IAutoTuneState {
 }
 
 /**
- * Service for automatic parameter tuning of Isolation Forest
+ * Service for iterative heuristic-based auto-tuning of Isolation Forest
  * 
- * Provides methods to:
- * - Run auto-tuning with different strategies (quick, balanced, thorough)
- * - Track progress of auto-tuning process
- * - Apply optimal parameters to analysis
+ * Pipeline: S → T → F → D → Th (sequential refinement)
  */
 @Injectable({
     providedIn: 'root'
@@ -39,23 +35,14 @@ export class AutoTunerService {
         this.setupProgressListener();
     }
 
-    /**
-     * Get current state
-     */
     get state(): IAutoTuneState {
         return this.stateSubject.value;
     }
 
-    /**
-     * Check if Electron API is available
-     */
     private get isElectron(): boolean {
         return !!(window as any).api?.autoTune;
     }
 
-    /**
-     * Setup listener for progress updates from main process
-     */
     private setupProgressListener(): void {
         if (this.isElectron) {
             (window as any).api.onAutoTuneProgress((progress: IAutoTuneProgress) => {
@@ -66,9 +53,6 @@ export class AutoTunerService {
         }
     }
 
-    /**
-     * Update state helper
-     */
     private updateState(partial: Partial<IAutoTuneState>): void {
         this.stateSubject.next({
             ...this.stateSubject.value,
@@ -76,17 +60,10 @@ export class AutoTunerService {
         });
     }
 
-    /**
-     * Run auto-tuning on the provided data
-     * 
-     * @param data - 2D array of numerical data
-     * @param method - Tuning method: 'quick', 'balanced', or 'thorough'
-     * @returns Promise with optimal parameters
-     */
     async runAutoTune(
         data: number[][],
-        method: 'quick' | 'balanced' | 'thorough' = 'balanced'
-    ): Promise<IIsolationForestParams | null> {
+        delta: number = 0.2
+    ): Promise<IAutoTuneResult | null> {
 
         if (!this.isElectron) {
             this.updateState({
@@ -95,10 +72,9 @@ export class AutoTunerService {
             return null;
         }
 
-        // Reset state and start
         this.updateState({
             isRunning: true,
-            progress: { phase: 'starting', message: 'Initializing auto-tuning...' },
+            progress: { phase: 'starting', message: 'Initializing iterative auto-tuning...' },
             result: null,
             error: null
         });
@@ -106,7 +82,7 @@ export class AutoTunerService {
         try {
             const config: IAutoTuneConfig = {
                 data,
-                options: { method }
+                options: { delta }
             };
 
             const response: IAutoTuneResult = await (window as any).api.autoTune(config);
@@ -118,14 +94,7 @@ export class AutoTunerService {
                     result: response.result
                 });
 
-                return {
-                    contamination: response.result.optimalParams.contamination,
-                    nTrees: response.result.optimalParams.nTrees,
-                    maxSamples: typeof response.result.optimalParams.maxSamples === 'number'
-                        ? response.result.optimalParams.maxSamples
-                        : undefined,
-                    maxFeatures: response.result.optimalParams.maxFeatures
-                };
+                return response;
             } else {
                 throw new Error(response.error || 'Unknown error during auto-tuning');
             }
@@ -141,18 +110,6 @@ export class AutoTunerService {
         }
     }
 
-    /**
-     * Get progress percentage (0-100)
-     */
-    getProgressPercentage(): number {
-        const progress = this.state.progress;
-        if (!progress || !progress.total) return 0;
-        return Math.round((progress.current || 0) / progress.total * 100);
-    }
-
-    /**
-     * Get human-readable status message
-     */
     getStatusMessage(): string {
         const { isRunning, progress, result, error } = this.state;
 
@@ -161,21 +118,23 @@ export class AutoTunerService {
         if (!isRunning) return 'Ready';
 
         if (progress) {
-            if (progress.phase === 'estimation') {
-                return 'Estimating initial parameters...';
-            }
-            if (progress.phase === 'gridSearch' && progress.current && progress.total) {
-                return `Testing combination ${progress.current}/${progress.total}`;
-            }
             return progress.message || 'Processing...';
         }
 
         return 'Running...';
     }
 
-    /**
-     * Clear result and error state
-     */
+    getCurrentPhaseLabel(): string {
+        const phaseLabels: Record<string, string> = {
+            sampleSize: 'Sample Size (S)',
+            trees: 'Trees (T)',
+            features: 'Features (F)',
+            depth: 'Depth (D)',
+            threshold: 'Threshold (Th)'
+        };
+        return phaseLabels[this.state.progress?.phase || ''] || '';
+    }
+
     clear(): void {
         this.updateState({
             isRunning: false,
@@ -185,58 +144,30 @@ export class AutoTunerService {
         });
     }
 
-    /**
-     * Get formatted metrics for display
-     */
-    getFormattedMetrics(): { label: string; value: string }[] {
+    getFormattedParams(): { label: string; value: string; icon: string }[] {
         const result = this.state.result;
         if (!result) return [];
 
         return [
-            {
-                label: 'Optimal Contamination',
-                value: `${(result.optimalParams.contamination * 100).toFixed(1)}%`
-            },
-            {
-                label: 'Optimal Trees',
-                value: result.optimalParams.nTrees.toString()
-            },
-            {
-                label: 'Quality Score',
-                value: result.metrics.qualityScore.toFixed(3)
-            },
-            {
-                label: 'Separation Score',
-                value: result.metrics.separationScore.toFixed(3)
-            },
-            {
-                label: 'Silhouette Score',
-                value: result.metrics.silhouetteScore.toFixed(3)
-            },
-            {
-                label: 'Execution Time',
-                value: `${(result.executionTime / 1000).toFixed(2)}s`
-            },
-            {
-                label: 'Iterations',
-                value: result.iterations.toString()
-            }
+            { label: 'Sample Size (S)', value: result.optimalParams.sampleSize.toString(), icon: 'data_array' },
+            { label: 'Trees (T)', value: result.optimalParams.nTrees.toString(), icon: 'park' },
+            { label: 'Max Features (F)', value: result.optimalParams.maxFeatures.toFixed(3), icon: 'view_column' },
+            { label: 'Max Depth (D)', value: result.optimalParams.maxDepth.toString(), icon: 'account_tree' },
+            { label: 'Threshold (Th)', value: result.optimalParams.threshold.toFixed(4), icon: 'tune' },
+            { label: 'Contamination', value: `${(result.optimalParams.contamination * 100).toFixed(2)}%`, icon: 'warning' }
         ];
     }
 
-    /**
-     * Get estimation breakdown for display
-     */
-    getEstimationBreakdown(): { method: string; value: string }[] {
+    getStepsSummary(): { param: string; value: string; iterations: number }[] {
         const result = this.state.result;
         if (!result) return [];
 
-        return [
-            { method: 'IQR Method', value: `${(result.estimations.iqr * 100).toFixed(1)}%` },
-            { method: 'Z-Score Method', value: `${(result.estimations.zscore * 100).toFixed(1)}%` },
-            { method: 'MAD Method', value: `${(result.estimations.mad * 100).toFixed(1)}%` },
-            { method: 'Elbow Method', value: `${(result.estimations.elbow * 100).toFixed(1)}%` },
-            { method: 'Combined', value: `${(result.estimations.combined * 100).toFixed(1)}%` }
-        ];
+        return result.steps.map(step => ({
+            param: step.param,
+            value: typeof step.value === 'number'
+                ? (step.param === 'Th' ? step.value.toFixed(4) : step.value.toFixed(3))
+                : String(step.value),
+            iterations: step.history.length
+        }));
     }
 }

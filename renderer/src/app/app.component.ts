@@ -69,6 +69,37 @@ import { AutoTunerService } from '@core';
             </span>
           </div>
 
+          <!-- Column selector (appears after CSV load) -->
+          <div *ngIf="header.length > 0" style="margin-top: 16px;">
+            <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
+              <mat-icon style="color: #666;">view_column</mat-icon>
+              <span style="font-size: 14px; color: #666;">{{ 'CONFIG.SELECT_COLUMNS' | translate }}</span>
+              <span style="font-size: 12px; color: #999;">({{ getSelectedColumnCount() }}/{{ header.length }})</span>
+              <button mat-button style="margin-left: auto; font-size: 12px;" (click)="toggleAllColumns()">
+                {{ allColumnsSelected() ? ('CONFIG.DESELECT_ALL' | translate) : ('CONFIG.SELECT_ALL' | translate) }}
+              </button>
+            </div>
+            <div style="max-height: 200px; overflow-y: auto; border: 1px solid #e0e0e0; border-radius: 8px;">
+              <table style="width: 100%; border-collapse: collapse;">
+                <tr *ngFor="let col of header; let i = index"
+                    style="border-bottom: 1px solid #f0f0f0; cursor: pointer;"
+                    (click)="toggleColumn(i)"
+                    [style.background]="selectedColumns[i] ? '#e8f5e9' : 'white'">
+                  <td style="padding: 6px 12px; width: 40px;">
+                    <mat-checkbox
+                      [checked]="selectedColumns[i]"
+                      (change)="toggleColumn(i)"
+                      (click)="$event.stopPropagation()"
+                      color="primary">
+                    </mat-checkbox>
+                  </td>
+                  <td style="padding: 6px 8px; font-size: 13px;">{{ col }}</td>
+                  <td style="padding: 6px 12px; font-size: 11px; color: #999; text-align: right;">{{ getColumnPreview(i) }}</td>
+                </tr>
+              </table>
+            </div>
+          </div>
+
           <div style="display: flex; gap: 20px; margin-top: 20px;">
             <mat-form-field appearance="outline" style="flex: 1;">
               <mat-label>{{ 'CONFIG.CONTAMINATION' | translate }}</mat-label>
@@ -91,6 +122,57 @@ import { AutoTunerService } from '@core';
                 [(ngModel)]="nTrees"
               />
               <mat-hint>{{ 'CONFIG.N_TREES_HINT' | translate }}</mat-hint>
+            </mat-form-field>
+          </div>
+
+          <!-- Advanced parameters row -->
+          <div style="display: flex; gap: 20px; margin-top: 16px; flex-wrap: wrap;">
+            <mat-form-field appearance="outline" style="flex: 1; min-width: 140px;">
+              <mat-label>{{ 'CONFIG.SAMPLE_SIZE' | translate }}</mat-label>
+              <input 
+                matInput 
+                type="number" 
+                [(ngModel)]="sampleSize"
+                min="2"
+              />
+              <mat-hint>{{ 'CONFIG.SAMPLE_SIZE_HINT' | translate }}</mat-hint>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" style="flex: 1; min-width: 140px;">
+              <mat-label>{{ 'CONFIG.MAX_FEATURES' | translate }}</mat-label>
+              <input 
+                matInput 
+                type="number" 
+                [(ngModel)]="maxFeatures"
+                step="0.1"
+                min="0.1"
+                max="1"
+              />
+              <mat-hint>{{ 'CONFIG.MAX_FEATURES_HINT' | translate }}</mat-hint>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" style="flex: 1; min-width: 140px;">
+              <mat-label>{{ 'CONFIG.MAX_DEPTH' | translate }}</mat-label>
+              <input 
+                matInput 
+                type="number" 
+                [(ngModel)]="maxDepth"
+                min="0"
+              />
+              <mat-hint>{{ 'CONFIG.MAX_DEPTH_HINT' | translate }}</mat-hint>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" style="flex: 1; min-width: 140px;">
+              <mat-label>{{ 'CONFIG.THRESHOLD' | translate }}</mat-label>
+              <input 
+                matInput 
+                type="number" 
+                [(ngModel)]="threshold"
+                step="0.01"
+                min="0"
+                max="1"
+              />
+              <mat-hint>{{ 'CONFIG.THRESHOLD_HINT' | translate }}</mat-hint>
             </mat-form-field>
           </div>
 
@@ -123,63 +205,6 @@ import { AutoTunerService } from '@core';
               <mat-icon>clear</mat-icon>
               {{ 'CONFIG.CLEAR' | translate }}
             </button>
-            
-            <!-- Auto-tune method selector -->
-            <mat-form-field appearance="outline" style="width: 180px; margin-left: auto;" *ngIf="!isAutoTuning">
-              <mat-label>{{ 'AUTO_TUNE.METHOD' | translate }}</mat-label>
-              <mat-select [(value)]="autoTuneMethod">
-                <mat-option value="quick">{{ 'AUTO_TUNE.METHODS.QUICK' | translate }}</mat-option>
-                <mat-option value="balanced">{{ 'AUTO_TUNE.METHODS.BALANCED' | translate }}</mat-option>
-                <mat-option value="thorough">{{ 'AUTO_TUNE.METHODS.THOROUGH' | translate }}</mat-option>
-              </mat-select>
-            </mat-form-field>
-          </div>
-          
-          <!-- Auto-tune progress -->
-          <div style="margin-top: 15px;" *ngIf="isAutoTuning">
-            <mat-progress-bar mode="indeterminate" *ngIf="!autoTuneProgress?.total"></mat-progress-bar>
-            <mat-progress-bar 
-              mode="determinate" 
-              [value]="getAutoTuneProgressPercent()"
-              *ngIf="autoTuneProgress?.total">
-            </mat-progress-bar>
-            <p style="color: #666; margin-top: 8px; font-size: 14px;">
-              {{ autoTunerService.getStatusMessage() }}
-            </p>
-          </div>
-          
-          <!-- Auto-tune results -->
-          <div *ngIf="autoTuneResult" style="margin-top: 15px; padding: 15px; background: #e8f5e9; border-radius: 8px;">
-            <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px;">
-              <mat-icon style="color: #2e7d32;">check_circle</mat-icon>
-              <strong>{{ 'AUTO_TUNE.OPTIMAL_PARAMS' | translate }}</strong>
-            </div>
-            <div style="display: flex; gap: 20px; flex-wrap: wrap;">
-              <div>
-                <span style="color: #666; font-size: 12px;">{{ 'CONFIG.CONTAMINATION' | translate }}</span>
-                <div style="font-size: 20px; font-weight: 600; color: #2e7d32;">
-                  {{ autoTuneResult.optimalParams.contamination * 100 | number:'1.1-1' }}%
-                </div>
-              </div>
-              <div>
-                <span style="color: #666; font-size: 12px;">{{ 'CONFIG.N_TREES' | translate }}</span>
-                <div style="font-size: 20px; font-weight: 600; color: #2e7d32;">
-                  {{ autoTuneResult.optimalParams.nTrees }}
-                </div>
-              </div>
-              <div>
-                <span style="color: #666; font-size: 12px;">{{ 'AUTO_TUNE.QUALITY_SCORE' | translate }}</span>
-                <div style="font-size: 20px; font-weight: 600; color: #1976d2;">
-                  {{ autoTuneResult.metrics.qualityScore | number:'1.3-3' }}
-                </div>
-              </div>
-              <div style="margin-left: auto;">
-                <button mat-raised-button color="accent" (click)="applyAutoTuneParams()">
-                  <mat-icon>check</mat-icon>
-                  {{ 'AUTO_TUNE.APPLY' | translate }}
-                </button>
-              </div>
-            </div>
           </div>
 
           <div style="margin-top: 15px;" *ngIf="status">
@@ -217,6 +242,16 @@ import { AutoTunerService } from '@core';
                       <mat-icon>{{ showOnlyAnomalies ? 'filter_alt_off' : 'filter_alt' }}</mat-icon>
                       {{ (showOnlyAnomalies ? 'RESULTS.SHOW_ALL' : 'RESULTS.ONLY_ANOMALIES') | translate }}
                     </button>
+                    <button
+                      mat-stroked-button
+                      color="warn"
+                      (click)="clearExcluded()"
+                      *ngIf="excludedRows.size > 0"
+                      style="margin-left: 8px;"
+                    >
+                      <mat-icon>restore</mat-icon>
+                      {{ 'RESULTS.CLEAR_EXCLUDED' | translate }} ({{ excludedRows.size }})
+                    </button>
                   </div>
                   <mat-form-field appearance="outline" style="width: 200px;">
                     <mat-label>{{ 'RESULTS.ROWS_PER_PAGE' | translate }}</mat-label>
@@ -231,6 +266,20 @@ import { AutoTunerService } from '@core';
                 </div>
                 <div style="overflow-x: auto;">
                   <table mat-table [dataSource]="getPaginatedData()" class="result-table">
+                  <!-- Exclude checkbox column -->
+                  <ng-container matColumnDef="exclude">
+                    <th mat-header-cell *matHeaderCellDef style="width: 48px;">
+                      <mat-icon style="font-size: 18px; color: #999;" matTooltip="{{ 'RESULTS.EXCLUDE_HINT' | translate }}">block</mat-icon>
+                    </th>
+                    <td mat-cell *matCellDef="let element">
+                      <mat-checkbox
+                        [checked]="excludedRows.has(element.originalIndex)"
+                        (change)="toggleExcludeRow(element.originalIndex)"
+                        color="warn">
+                      </mat-checkbox>
+                    </td>
+                  </ng-container>
+
                   <!-- Dynamic columns -->
                   <ng-container *ngFor="let col of header; let idx = index" [matColumnDef]="col">
                     <th mat-header-cell *matHeaderCellDef> {{ col }} </th>
@@ -265,6 +314,7 @@ import { AutoTunerService } from '@core';
                     mat-row 
                     *matRowDef="let row; columns: displayedColumns;"
                     [class.anomaly-row]="row.isAnomaly"
+                    [class.excluded-row]="excludedRows.has(row.originalIndex)"
                   ></tr>
                 </table>
               </div>
@@ -312,12 +362,54 @@ import { AutoTunerService } from '@core';
                     </mat-card-content>
                   </mat-card>
                 </div>
+                <!-- Healthy Baseline -->
+                <div *ngIf="healthyBaseline.length > 0" style="margin-top: 30px;">
+                  <h3 style="display: flex; align-items: center; gap: 8px;">
+                    <mat-icon style="color: #26a69a;">favorite</mat-icon>
+                    {{ 'STATS.HEALTHY_BASELINE' | translate }}
+                  </h3>
+                  <p style="color: #888; font-size: 0.85em; margin-bottom: 12px;">{{ 'STATS.BASELINE_DESC' | translate }}</p>
+                  <div style="overflow-x: auto;">
+                    <table style="width: 100%; border-collapse: collapse; background: white; border-radius: 8px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+                      <thead>
+                        <tr style="background: #e0f2f1;">
+                          <th style="padding: 10px 14px; text-align: left; font-weight: 500;">{{ 'STATS.COLUMN' | translate }}</th>
+                          <th style="padding: 10px 14px; text-align: right; font-weight: 500;">{{ 'STATS.MEDIAN' | translate }}</th>
+                          <th style="padding: 10px 14px; text-align: right; font-weight: 500;">{{ 'STATS.MEAN' | translate }}</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr *ngFor="let b of healthyBaseline; let odd = odd"
+                            [style.background]="odd ? '#fafafa' : 'white'"
+                            style="border-bottom: 1px solid #f0f0f0;">
+                          <td style="padding: 8px 14px; font-size: 13px;">{{ b.column }}</td>
+                          <td style="padding: 8px 14px; text-align: right; font-family: monospace; font-size: 13px;">{{ b.median | number:'1.4-4' }}</td>
+                          <td style="padding: 8px 14px; text-align: right; font-family: monospace; font-size: 13px;">{{ b.mean | number:'1.4-4' }}</td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
               </div>
             </mat-tab>
 
             <mat-tab [label]="'RESULTS.CHART_TAB' | translate">
               <div style="padding: 20px;">
                 <canvas #chartCanvas></canvas>
+              </div>
+            </mat-tab>
+
+            <!-- Auto-Tuning Tab -->
+            <mat-tab *ngIf="autoTunerService.state.isRunning || autoTunerService.state.result">
+              <ng-template mat-tab-label>
+                <mat-icon style="margin-right: 6px;" [class.spin-icon]="autoTunerService.state.isRunning">auto_fix_high</mat-icon>
+                {{ 'AUTO_TUNE.TITLE' | translate }}
+              </ng-template>
+              <div style="padding: 20px;">
+                <app-auto-tuner-panel
+                  [hasData]="rows.length > 0"
+                  (paramsSelected)="onTuningParamsSelected($event)">
+                </app-auto-tuner-panel>
               </div>
             </mat-tab>
           </mat-tab-group>
@@ -351,6 +443,16 @@ import { AutoTunerService } from '@core';
       background-color: rgba(233, 30, 99, 0.24);
     }
 
+    .excluded-row {
+      opacity: 0.4;
+      text-decoration: line-through;
+      background-color: #f5f5f5;
+    }
+
+    .excluded-row:hover {
+      opacity: 0.6;
+    }
+
     .stats-grid {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
@@ -381,6 +483,13 @@ import { AutoTunerService } from '@core';
       align-items: center;
       gap: 10px;
     }
+
+    .spin-icon {
+      animation: spin-anim 2s linear infinite;
+    }
+    @keyframes spin-anim {
+      100% { transform: rotate(360deg); }
+    }
   `]
 })
 export class AppComponent implements OnInit {
@@ -394,13 +503,19 @@ export class AppComponent implements OnInit {
   statusColor: 'primary' | 'accent' | 'warn' = 'primary';
   contamination = 0.05;
   nTrees = 100;
+  sampleSize = 256;
+  maxFeatures = 1.0;
+  maxDepth = 0;      // 0 = auto (log2(sampleSize))
+  threshold = 0;     // 0 = auto (use contamination-based)
   isLoading = false;
   fileName = '';
   displayedColumns: string[] = [];
+  selectedColumns: boolean[] = []; // which CSV columns to use for analysis
+  excludedRows = new Set<number>(); // row indices excluded from analysis
+  healthyBaseline: { column: string; median: number; mean: number }[] = [];
 
   // Auto-tuning
   isAutoTuning = false;
-  autoTuneMethod: 'quick' | 'balanced' | 'thorough' = 'balanced';
   autoTuneProgress: any = null;
   autoTuneResult: any = null;
 
@@ -460,10 +575,11 @@ export class AppComponent implements OnInit {
 
       await new Promise(resolve => setTimeout(resolve, 10));
 
-      const rows = lines.map(l => l.split(',').map(s => s.trim()));
+      const rows = lines.map(l => this.parseCSVLine(l));
       this.header = rows[0];
       this.rows = rows.slice(1);
-      this.displayedColumns = [...this.header, 'score', 'anomaly'];
+      this.displayedColumns = ['exclude', ...this.header, 'score', 'anomaly'];
+      this.selectedColumns = this.header.map(() => true); // select all by default
       this.scores = [];
       this.labels = [];
 
@@ -497,37 +613,146 @@ export class AppComponent implements OnInit {
     });
   }
 
+  // Column selection helpers
+  getSelectedColumnCount(): number {
+    return this.selectedColumns.filter(s => s).length;
+  }
+
+  allColumnsSelected(): boolean {
+    return this.selectedColumns.length > 0 && this.selectedColumns.every(s => s);
+  }
+
+  toggleAllColumns(): void {
+    const allSelected = this.allColumnsSelected();
+    this.selectedColumns = this.selectedColumns.map(() => !allSelected);
+  }
+
+  toggleColumn(index: number): void {
+    this.selectedColumns[index] = !this.selectedColumns[index];
+  }
+
+  getColumnPreview(index: number): string {
+    if (this.rows.length === 0) return '';
+    const samples = this.rows.slice(0, 3).map(r => r[index] || '').join(', ');
+    return samples.length > 40 ? samples.substring(0, 37) + '...' : samples;
+  }
+
+  /**
+   * Check if string looks like a date (contains month names or date patterns)
+   */
+  isDateLike(val: string): boolean {
+    if (!val) return false;
+    // Month names (English/Spanish)
+    const monthPattern = /\b(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec|Ene|Abr|Ago|Dic)\b/i;
+    // Common date patterns like DD/MM/YYYY, YYYY-MM-DD, etc.
+    const datePattern = /^\d{1,4}[-\/]\d{1,2}[-\/]\d{1,4}/;
+    return monthPattern.test(val) || datePattern.test(val);
+  }
+
+  /**
+   * Try to parse date string to Unix timestamp (seconds since epoch)
+   */
+  parseDateToTimestamp(val: string): number | null {
+    if (!val) return null;
+
+    // Remove surrounding whitespace
+    const cleaned = val.trim();
+
+    const date = new Date(cleaned);
+    if (!isNaN(date.getTime())) {
+      // Return timestamp in hours (more manageable scale)
+      return Math.floor(date.getTime() / (1000 * 60 * 60));
+    }
+    return null;
+  }
+
   /**
    * Extract numeric value from string with units (e.g., "572.634 MB" → 572.634)
+   * Does NOT extract numbers from date strings
    */
   parseNumericValue(val: string): number | null {
     if (val === null || val === '') return null;
-    
+
+    // Skip date-like strings - they should be handled separately
+    if (this.isDateLike(val)) return null;
+
     // Try direct parsing first
     const direct = Number(val);
     if (!Number.isNaN(direct)) return direct;
-    
+
     // Try extracting number from string with units (e.g., "123.45 MB", "99%")
-    const match = val.match(/^[\s"']*(-?\d+(?:\.\d+)?)/);
+    // But only if it STARTS with a number (not like "Dec 28")
+    const match = val.match(/^\s*(-?\d+(?:\.\d+)?)\s*[a-zA-Z%]+/);
     if (match) {
       const num = Number(match[1]);
       if (!Number.isNaN(num)) return num;
     }
-    
+
     return null;
   }
 
+  /**
+   * Parse a CSV line handling quoted fields (commas inside quotes, escaped quotes)
+   */
+  parseCSVLine(line: string): string[] {
+    const result: string[] = [];
+    let current = '';
+    let inQuotes = false;
+
+    for (let i = 0; i < line.length; i++) {
+      const ch = line[i];
+      if (inQuotes) {
+        if (ch === '"') {
+          if (i + 1 < line.length && line[i + 1] === '"') {
+            current += '"';
+            i++; // skip escaped quote
+          } else {
+            inQuotes = false;
+          }
+        } else {
+          current += ch;
+        }
+      } else {
+        if (ch === '"') {
+          inQuotes = true;
+        } else if (ch === ',') {
+          result.push(current.trim());
+          current = '';
+        } else {
+          current += ch;
+        }
+      }
+    }
+    result.push(current.trim());
+    return result;
+  }
+
   recode(rows: string[][]) {
-    const cols = rows[0].length;
+    // Filter to only selected columns
+    const colIndices = this.selectedColumns
+      .map((selected, i) => selected ? i : -1)
+      .filter(i => i >= 0);
+
+    // If none selected, use all
+    const useIndices = colIndices.length > 0 ? colIndices : rows[0].map((_, i) => i);
+
+    const cols = useIndices.length;
     const maps = Array.from({ length: cols }, () => new Map());
     const nextId = Array.from({ length: cols }, () => 1);
-    return rows.map(r => r.map((cell, i) => {
+
+    // First pass: convert selected columns to numeric
+    const numericData = rows.map(r => useIndices.map((origIdx, i) => {
+      const cell = r[origIdx];
       const val = cell === '' ? null : cell;
-      
+
+      // Try to parse dates as timestamps first
+      const timestamp = this.parseDateToTimestamp(val as string);
+      if (timestamp !== null) return timestamp;
+
       // Try to parse as numeric (including values with units like "572.634 MB")
       const numericVal = this.parseNumericValue(val as string);
       if (numericVal !== null) return numericVal;
-      
+
       // Categorical encoding
       const m = maps[i];
       if (m.has(val)) return m.get(val);
@@ -535,6 +760,105 @@ export class AppComponent implements OnInit {
       m.set(val, id);
       return id;
     }));
+
+    // Second pass: normalize and filter columns
+    return this.normalizeData(numericData);
+  }
+
+  /**
+   * Normalize data using Z-score and filter out constant columns
+   * Also applies log transform to highly skewed positive data
+   */
+  normalizeData(data: number[][]): number[][] {
+    if (data.length === 0) return data;
+
+    const cols = data[0].length;
+    const n = data.length;
+
+    // Calculate stats for each column
+    type ColStat = {
+      mean: number; std: number; min: number; max: number;
+      isConstant: boolean; useLog: boolean;
+      logMean?: number; logStd?: number;
+      coeffOfVariation: number; // CV = std/mean - measures relative variability
+    };
+    const colStats: ColStat[] = [];
+
+    for (let j = 0; j < cols; j++) {
+      const colValues = data.map(row => row[j]);
+      const min = Math.min(...colValues);
+      const max = Math.max(...colValues);
+      const mean = colValues.reduce((a, b) => a + b, 0) / n;
+      const variance = colValues.reduce((a, b) => a + Math.pow(b - mean, 2), 0) / n;
+      const std = Math.sqrt(variance) || 1e-9;
+
+      // Coefficient of variation - higher means more variability relative to mean
+      const coeffOfVariation = mean !== 0 ? std / Math.abs(mean) : 0;
+
+      // Check if column is constant (no variance)
+      const isConstant = (max - min) < 1e-9;
+
+      // Check if data is highly skewed and positive (use log transform)
+      // Skewness heuristic: if max/min > 100 and all positive
+      const useLog = min > 0 && (max / min) > 100;
+
+      let logMean = 0, logStd = 1;
+      if (useLog) {
+        const logValues = colValues.map(v => Math.log1p(v));
+        logMean = logValues.reduce((a, b) => a + b, 0) / n;
+        logStd = Math.sqrt(logValues.reduce((a, b) => a + Math.pow(b - logMean, 2), 0) / n) || 1e-9;
+      }
+
+      colStats.push({ mean, std, min, max, isConstant, useLog, logMean, logStd, coeffOfVariation });
+    }
+
+    // Find non-constant columns, prioritize high-variability columns
+    let validCols = colStats
+      .map((s, i) => ({ ...s, idx: i }))
+      .filter(s => !s.isConstant);
+
+    // If we have columns with very different variability, focus on high-CV ones
+    // This helps when timestamps dominate but have low relative variability
+    const maxCV = Math.max(...validCols.map(c => c.coeffOfVariation));
+    const minCV = Math.min(...validCols.map(c => c.coeffOfVariation));
+
+    // If there's a big difference in variability, filter out low-variability columns
+    if (maxCV > minCV * 10 && validCols.length > 1) {
+      const cvThreshold = maxCV * 0.1; // Keep columns with CV at least 10% of max
+      validCols = validCols.filter(c => c.coeffOfVariation >= cvThreshold);
+    }
+
+    if (validCols.length === 0) {
+      console.warn('All columns filtered out, using all non-constant columns');
+      validCols = colStats.map((s, i) => ({ ...s, idx: i })).filter(s => !s.isConstant);
+    }
+
+    console.log('Columns used for analysis:', validCols.map(c => ({
+      idx: c.idx,
+      cv: c.coeffOfVariation.toFixed(4),
+      useLog: c.useLog,
+      range: `${c.min.toFixed(2)} - ${c.max.toFixed(2)}`
+    })));
+
+    // Normalize only selected columns to [0, 1] range (Min-Max)
+    return data.map(row => {
+      return validCols.map(col => {
+        let val = row[col.idx];
+
+        // Apply log transform for skewed data
+        if (col.useLog && val > 0) {
+          val = Math.log1p(val);
+          const logMin = Math.log1p(col.min);
+          const logMax = Math.log1p(col.max);
+          const logRange = logMax - logMin || 1e-9;
+          return (val - logMin) / logRange;
+        }
+
+        // Min-Max normalization to [0, 1]
+        const range = col.max - col.min || 1e-9;
+        return (val - col.min) / range;
+      });
+    });
   }
 
   async run() {
@@ -552,7 +876,18 @@ export class AppComponent implements OnInit {
     await new Promise(resolve => setTimeout(resolve, 100));
 
     const startTime = Date.now();
-    const data = this.recode(this.rows);
+
+    // Filter out excluded rows before recoding
+    const includedIndices: number[] = [];
+    const includedRows: string[][] = [];
+    this.rows.forEach((row, idx) => {
+      if (!this.excludedRows.has(idx)) {
+        includedIndices.push(idx);
+        includedRows.push(row);
+      }
+    });
+
+    const data = this.recode(includedRows);
     const recodeTime = ((Date.now() - startTime) / 1000).toFixed(2);
 
     this.status = this.translate.instant('STATUS.RECODE_COMPLETE', { time: recodeTime });
@@ -564,15 +899,30 @@ export class AppComponent implements OnInit {
         data,
         params: {
           contamination: this.contamination,
-          nTrees: this.nTrees
+          nTrees: this.nTrees,
+          sampleSize: this.sampleSize || 0,
+          maxFeatures: this.maxFeatures || 1.0,
+          maxDepth: this.maxDepth || 0,
+          threshold: this.threshold || 0
         }
       });
 
       if (!resp.success) throw new Error(resp.error || 'Error desconocido');
 
       const algoTime = ((Date.now() - algoStartTime) / 1000).toFixed(2);
-      this.scores = resp.result.scores || [];
-      this.labels = resp.result.labels || [];
+
+      // Map scores/labels back to full row array (excluded rows get 0/false)
+      const resultScores = resp.result.scores || [];
+      const resultLabels = resp.result.labels || [];
+      this.scores = new Array(this.rows.length).fill(0);
+      this.labels = new Array(this.rows.length).fill(false);
+      includedIndices.forEach((origIdx, i) => {
+        this.scores[origIdx] = resultScores[i] || 0;
+        this.labels[origIdx] = resultLabels[i] || false;
+      });
+
+      // Calculate healthy baseline from Normal records
+      this.calculateHealthyBaseline();
 
       // Reset to first page after analysis
       this.pageIndex = 0;
@@ -600,6 +950,9 @@ export class AppComponent implements OnInit {
     this.status = '';
     this.fileName = '';
     this.displayedColumns = [];
+    this.selectedColumns = [];
+    this.excludedRows.clear();
+    this.healthyBaseline = [];
     this.pageIndex = 0;
     this.pageSize = 50;
   }
@@ -608,7 +961,8 @@ export class AppComponent implements OnInit {
     return this.rows.map((row, idx) => ({
       values: row,
       score: this.scores[idx] || 0,
-      isAnomaly: this.labels[idx] || false
+      isAnomaly: this.labels[idx] || false,
+      originalIndex: idx
     }));
   }
 
@@ -654,6 +1008,56 @@ export class AppComponent implements OnInit {
     return ((this.getAnomalyCount() / this.rows.length) * 100).toFixed(2);
   }
 
+  toggleExcludeRow(index: number): void {
+    if (this.excludedRows.has(index)) {
+      this.excludedRows.delete(index);
+    } else {
+      this.excludedRows.add(index);
+    }
+  }
+
+  clearExcluded(): void {
+    this.excludedRows.clear();
+  }
+
+  getExcludedCount(): number {
+    return this.excludedRows.size;
+  }
+
+  calculateHealthyBaseline(): void {
+    // Get indices of Normal (non-anomaly, non-excluded) rows
+    const normalIndices: number[] = [];
+    this.rows.forEach((_, idx) => {
+      if (!this.excludedRows.has(idx) && !this.labels[idx]) {
+        normalIndices.push(idx);
+      }
+    });
+
+    if (normalIndices.length === 0) {
+      this.healthyBaseline = [];
+      return;
+    }
+
+    this.healthyBaseline = this.header.map((col, colIdx) => {
+      const values = normalIndices
+        .map(rowIdx => this.parseNumericValue(this.rows[rowIdx][colIdx]))
+        .filter((v): v is number => v !== null);
+
+      if (values.length === 0) {
+        return { column: col, median: NaN, mean: NaN };
+      }
+
+      values.sort((a, b) => a - b);
+      const mid = Math.floor(values.length / 2);
+      const median = values.length % 2 !== 0
+        ? values[mid]
+        : (values[mid - 1] + values[mid]) / 2;
+      const mean = values.reduce((a, b) => a + b, 0) / values.length;
+
+      return { column: col, median, mean };
+    });
+  }
+
   showAbout() {
     const message = `${this.translate.instant('ABOUT.TITLE')}
 
@@ -696,24 +1100,25 @@ ${this.translate.instant('ABOUT.COPYRIGHT')}`;
     this.statusColor = 'primary';
 
     try {
-      // Recode data first
       const data = this.recode(this.rows);
 
-      // Call Electron API
       if ((window as any).api && (window as any).api.autoTune) {
-        const response = await (window as any).api.autoTune({
-          data,
-          options: { method: this.autoTuneMethod }
-        });
+        // Use the service so the panel can track state
+        const response = await this.autoTunerService.runAutoTune(data, 0.2);
 
-        if (response.success && response.result) {
+        if (response && response.success && response.result) {
           this.autoTuneResult = response.result;
-          this.status = this.translate.instant('AUTO_TUNE.OPTIMAL_PARAMS') + ': ' +
-            `contamination=${(response.result.optimalParams.contamination * 100).toFixed(1)}%, ` +
-            `nTrees=${response.result.optimalParams.nTrees}`;
+          this.status = this.translate.instant('AUTO_TUNE.OPTIMAL_PARAMS') + ' ✓';
           this.statusColor = 'accent';
+
+          if (response.result.scores && response.result.labels) {
+            this.scores = response.result.scores;
+            this.labels = response.result.labels;
+            this.pageIndex = 0;
+            this.calculateHealthyBaseline();
+          }
         } else {
-          this.status = this.translate.instant('STATUS.ERROR', { error: response.error || 'Unknown error' });
+          this.status = this.translate.instant('STATUS.ERROR', { error: (response && response.error) || 'Unknown error' });
           this.statusColor = 'warn';
         }
       } else {
@@ -729,18 +1134,29 @@ ${this.translate.instant('ABOUT.COPYRIGHT')}`;
     }
   }
 
+  onTuningParamsSelected(params: { contamination: number; nTrees: number; maxFeatures: number; maxDepth: number; sampleSize: number; threshold: number }) {
+    this.contamination = params.contamination;
+    this.nTrees = params.nTrees;
+    this.sampleSize = params.sampleSize;
+    this.maxFeatures = params.maxFeatures;
+    this.maxDepth = params.maxDepth;
+    this.threshold = params.threshold;
+    this.autoTuneResult = null;
+    this.status = this.translate.instant('AUTO_TUNE.APPLY') + ' ✓';
+    this.statusColor = 'accent';
+  }
+
   applyAutoTuneParams() {
     if (this.autoTuneResult) {
       this.contamination = this.autoTuneResult.optimalParams.contamination;
       this.nTrees = this.autoTuneResult.optimalParams.nTrees;
+      this.sampleSize = this.autoTuneResult.optimalParams.sampleSize;
+      this.maxFeatures = this.autoTuneResult.optimalParams.maxFeatures;
+      this.maxDepth = this.autoTuneResult.optimalParams.maxDepth;
+      this.threshold = this.autoTuneResult.optimalParams.threshold;
       this.autoTuneResult = null;
       this.status = this.translate.instant('AUTO_TUNE.APPLY') + ' ✓';
       this.statusColor = 'accent';
     }
-  }
-
-  getAutoTuneProgressPercent(): number {
-    if (!this.autoTuneProgress || !this.autoTuneProgress.total) return 0;
-    return Math.round((this.autoTuneProgress.current / this.autoTuneProgress.total) * 100);
   }
 }

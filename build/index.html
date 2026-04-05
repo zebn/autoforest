@@ -1,0 +1,73 @@
+<!doctype html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <title>AutoForest - Auto-tuning Isolation Forest</title>
+    <base href="./">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500&amp;display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+<link rel="stylesheet" href="styles.css"></head>
+
+<body>
+    <app-root>
+        <div style="display: flex; justify-content: center; align-items: center; height: 100vh; flex-direction: column; background: linear-gradient(135deg, #ec407a 0%, #d81b60 100%); color: white;">
+            <div style="text-align: center; animation: fadeIn 0.8s ease-in;">
+                <img src="assets/images/logo.png" alt="AutoForest Logo" style="max-width: 300px; margin-bottom: 30px; animation: pulse 2s infinite;">
+                <h2 style="font-size: 2em; margin: 20px 0 10px 0; font-weight: 300;">Cargando AutoForest...</h2>
+                <p style="font-size: 1.1em; opacity: 0.9;">Sistema de detección de anomalías con auto-ajuste</p>
+                <div style="margin-top: 30px;">
+                    <div class="spinner"></div>
+                </div>
+            </div>
+        </div>
+        <style>
+            @keyframes fadeIn {
+                from {
+                    opacity: 0;
+                    transform: translateY(-20px);
+                }
+
+                to {
+                    opacity: 1;
+                    transform: translateY(0);
+                }
+            }
+
+            @keyframes pulse {
+
+                0%,
+                100% {
+                    transform: scale(1);
+                }
+
+                50% {
+                    transform: scale(1.05);
+                }
+            }
+
+            @keyframes spin {
+                0% {
+                    transform: rotate(0deg);
+                }
+
+                100% {
+                    transform: rotate(360deg);
+                }
+            }
+
+            .spinner {
+                border: 4px solid rgba(255, 255, 255, 0.3);
+                border-top: 4px solid white;
+                border-radius: 50%;
+                width: 40px;
+                height: 40px;
+                animation: spin 1s linear infinite;
+                margin: 0 auto;
+            }
+        </style>
+    </app-root>
+<script src="runtime.js" type="module"></script><script src="polyfills.js" type="module"></script><script src="main.js" type="module"></script></body>
+
+</html>

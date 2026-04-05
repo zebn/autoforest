@@ -24,6 +24,7 @@ import { MatPaginatorModule } from '@angular/material/paginator';
 import { MatMenuModule } from '@angular/material/menu';
 import { MatSelectModule } from '@angular/material/select';
 import { MatExpansionModule } from '@angular/material/expansion';
+import { MatCheckboxModule } from '@angular/material/checkbox';
 import { ScrollingModule } from '@angular/cdk/scrolling';
 
 import { AppComponent } from './app.component';
@@ -33,6 +34,7 @@ import { DatasetConfigComponent } from './features/dataset/components/dataset-co
 import { DataTableComponent } from './features/analysis/components/data-table.component';
 import { StatisticsPanelComponent } from './features/analysis/components/statistics-panel.component';
 import { AutoTunerPanelComponent } from './features/tuning/components/auto-tuner-panel.component';
+import { TuningChartComponent } from './features/tuning/components/tuning-chart.component';
 
 // Layout Components
 import { ToolbarComponent } from './layout/components/toolbar.component';
@@ -53,6 +55,7 @@ export function HttpLoaderFactory(http: HttpClient) {
         DataTableComponent,
         StatisticsPanelComponent,
         AutoTunerPanelComponent,
+        TuningChartComponent,
         // Layout Components
         ToolbarComponent,
         // Shared Components
@@ -87,6 +90,7 @@ export function HttpLoaderFactory(http: HttpClient) {
         MatMenuModule,
         MatSelectModule,
         MatExpansionModule,
+        MatCheckboxModule,
         ScrollingModule
     ],
     providers: [],

@@ -148,7 +148,7 @@ ipcMain.handle('run-isolation', async (event, { data, params }) => {
 ipcMain.handle('auto-tune', async (event, { data, options }) => {
     try {
         const result = await autoTuner.autoTune(data, {
-            method: options?.method || 'balanced',
+            delta: options?.delta ?? 0.2,
             progressCallback: (progress) => {
                 // Send progress updates to renderer
                 mainWindow.webContents.send('auto-tune-progress', progress);

@@ -46,7 +46,7 @@ export interface IElectronIsolationResult {
 export interface IAutoTuneConfig {
     data: number[][];
     options?: {
-        method?: 'quick' | 'balanced' | 'thorough';
+        delta?: number;
     };
 }
 
@@ -55,13 +55,26 @@ export interface IAutoTuneConfig {
  */
 export interface IAutoTuneProgress {
     phase?: string;
+    step?: string;
     message?: string;
-    current?: number;
-    total?: number;
-    params?: {
-        contamination: number;
-        nTrees: number;
-    };
+    iteration?: number;
+    currentValue?: number;
+}
+
+/**
+ * Interface for a single tuning step history entry
+ */
+export interface ITuningStepEntry {
+    [key: string]: any;
+}
+
+/**
+ * Interface for a tuning step result
+ */
+export interface ITuningStep {
+    param: string;
+    value: number;
+    history: ITuningStepEntry[];
 }
 
 /**
@@ -71,30 +84,18 @@ export interface IAutoTuneResult {
     success: boolean;
     result?: {
         optimalParams: {
-            contamination: number;
+            sampleSize: number;
             nTrees: number;
-            maxSamples: string | number;
             maxFeatures: number;
+            maxDepth: number;
+            threshold: number;
+            contamination: number;
         };
-        metrics: {
-            separationScore: number;
-            silhouetteScore: number;
-            qualityScore: number;
-        };
-        estimations: {
-            iqr: number;
-            zscore: number;
-            mad: number;
-            elbow: number;
-            combined: number;
-        };
-        allResults: Array<{
-            params: { contamination: number; nTrees: number };
-            qualityScore: number;
-        }>;
-        iterations: number;
+        scores: number[];
+        labels: boolean[];
+        steps: ITuningStep[];
         executionTime: number;
-        method: string;
+        totalIterations: number;
     };
     error?: string;
 }
