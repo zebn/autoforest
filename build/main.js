@@ -755,7 +755,14 @@ class AppComponent {
         });
         yield new Promise(resolve => setTimeout(resolve, 10));
         const rows = lines.map(l => _this.parseCSVLine(l));
-        _this.header = rows[0];
+        // Deduplicate header names (mat-table requires unique matColumnDef)
+        const rawHeader = rows[0];
+        const seen = new Map();
+        _this.header = rawHeader.map(name => {
+          const count = seen.get(name) || 0;
+          seen.set(name, count + 1);
+          return count === 0 ? name : `${name}_${count}`;
+        });
         _this.rows = rows.slice(1);
         _this.displayedColumns = ['exclude', ..._this.header, 'score', 'anomaly'];
         _this.selectedColumns = _this.header.map(() => true); // select all by default

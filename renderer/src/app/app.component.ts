@@ -576,7 +576,14 @@ export class AppComponent implements OnInit {
       await new Promise(resolve => setTimeout(resolve, 10));
 
       const rows = lines.map(l => this.parseCSVLine(l));
-      this.header = rows[0];
+      // Deduplicate header names (mat-table requires unique matColumnDef)
+      const rawHeader = rows[0];
+      const seen = new Map<string, number>();
+      this.header = rawHeader.map(name => {
+        const count = seen.get(name) || 0;
+        seen.set(name, count + 1);
+        return count === 0 ? name : `${name}_${count}`;
+      });
       this.rows = rows.slice(1);
       this.displayedColumns = ['exclude', ...this.header, 'score', 'anomaly'];
       this.selectedColumns = this.header.map(() => true); // select all by default
