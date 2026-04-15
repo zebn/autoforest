@@ -93,6 +93,7 @@ import { AutoTunerService } from '@core';
                       color="primary">
                     </mat-checkbox>
                   </td>
+                  <td style="padding: 6px 8px; font-size: 11px; color: #aaa; width: 30px;">{{ i + 1 }}</td>
                   <td style="padding: 6px 8px; font-size: 13px;">{{ col }}</td>
                   <td style="padding: 6px 12px; font-size: 11px; color: #999; text-align: right;">{{ getColumnPreview(i) }}</td>
                 </tr>
@@ -282,7 +283,7 @@ import { AutoTunerService } from '@core';
 
                   <!-- Dynamic columns -->
                   <ng-container *ngFor="let col of header; let idx = index" [matColumnDef]="col">
-                    <th mat-header-cell *matHeaderCellDef> {{ col }} </th>
+                    <th mat-header-cell *matHeaderCellDef> <span style="font-size: 10px; color: #aaa;">#{{ idx + 1 }}</span> {{ col }} </th>
                     <td mat-cell *matCellDef="let element"> {{ element.values[idx] }} </td>
                   </ng-container>
 
