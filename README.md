@@ -142,7 +142,8 @@ autoforest/
 │   │   └── logonotitle.png
 │   └── package.json
 ├── src/
-│   └── isolationEngine.js # Motor de Isolation Forest
+│   ├── isolationForest.js # Motor de Isolation Forest (implementación nativa)
+│   └── autoTuner.js       # Auto-ajuste de parámetros
 ├── test-data/            # Datasets de prueba
 └── docs/                 # Documentación
 ```
